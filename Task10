@@ -1,0 +1,136 @@
+import React, {useState, useEffect} from 'react';
+import { Button, StyleSheet, Text, TextInput, FlatList, View } from 'react-native';
+
+
+const App=() => {
+  const [newFish, setFish]=useState();
+  const [fishList, addFish]=useState([{"_id":1, "breed":"Bream", "weight":100}, {"_id":2, "breed":"Burbot", "weight":400}, {"_id":3, "breed":"Tench", "weight":800}]);
+  const fishInputHandler=(enteredText)=>{
+    setFish(enteredText);
+  }
+
+  async function addFishToList() {
+    try{
+    const newFishData = {_id: fishList.length + 1, breed: newFish, weight: 1007};
+    const response = await fetch("https://mobileautumn2024.ey.r.appspot.com/addfish",
+    {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({newFishData})
+    });
+    console.log(newFishData);
+    let json=await response.json();
+    setFishList(json);
+  }
+  catch(error){
+    console.log(error);
+  }
+}
+
+  const setFishList=(list)=>{
+    addFish(list);
+  }
+  const keyHandler=(item)=>{
+    if (item && item._id){
+      return item._id.toString();
+    } else {
+    console.log(item._id+". "+item.breed);
+    console.error('Item _id is undefined or null:', item);
+    return String(item); // Fallback to converting the entire item to a string, or use some other unique identifier
+  }
+  };
+
+  /* Another way to write fetchFish function*/
+  const fetchFish=async()=>{
+    try{
+      let response=await fetch("https://mobileautumn2024.ey.r.appspot.com/getallfish");
+      let json=await response.json();
+      setFishList(json);
+    }
+    catch(error){
+      console.log(error);
+    }
+  }
+
+  const renderFish=(item)=>{
+    //console.log("renderFish A: "+item.item._id+" = "+item.item.breed);
+    return <View style={styles.listItemStyle}>
+      <Text>{item.index} {item.item._id} {item.item.breed} {item.item.weight}</Text></View>;
+  }
+return (
+    <View style={styles.container}>
+      <View style={styles.formView}>
+        <TextInput style={styles.inputStyle} placeholder="Fish breed..." 
+            //onChangeText={fishInputHandler}
+            />
+        <Button style={styles.buttonStyle} title='Click!' 
+            onPress={addFishToList}/>
+      </View>
+      <Button style={styles.buttonStyle} title='Read Fish' 
+            onPress={fetchFish}/>
+      <View style={styles.listStyle}>
+        <FlatList style={styles.flatliststyle}
+          keyExtractor={keyHandler}
+          data={fishList}
+          renderItem={renderFish}
+        />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  flatliststyle:{
+    width:'80%',
+    backgroundColor:'blue',
+  },
+  listItemStyle:{
+    borderWidth:1,
+    borderColor:"blue",
+    padding:5,
+    backgroundColor:"#abc",
+    width:"80%",
+    alignSelf:"center",
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width:"100%",
+  },
+  formView:{
+    flex:1,
+    flexDirection:"row",
+    backgroundColor:"#def",
+    alignItems:"center",
+    justifyContent:"space-around",
+    marginTop:20,
+    width:"100%",
+  },
+  listStyle:{
+    flex:8,
+    alignItems:"center",
+    backgroundColor:"#eee",
+    borderColor:"green",
+    borderWidth:2,
+    width:"100%",
+  },
+  inputStyle:{
+    backgroundColor:"#abc",
+    borderColor:"black",
+    borderWidth:2,
+    margin:2,
+    padding:5,
+    width:"50%",
+  },
+  buttonStyle:{
+    margin:2,
+    padding:5,
+    width:"20%",
+  }
+});
+
+export default App;
